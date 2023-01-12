@@ -20,7 +20,7 @@ import com.razorpay.Checkout
 import com.razorpay.PaymentResultListener
 import org.json.JSONObject
 
-class MainActivity : AppCompatActivity(), PaymentResultListener {
+class MainActivity : AppCompatActivity() {
     private var nameProduct: String = "PaymentProduct"
     private var totalProduct: Int = 123456;
     private var quantityProduct: Int = 1;
@@ -31,11 +31,6 @@ class MainActivity : AppCompatActivity(), PaymentResultListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Razorpay
-        Checkout.preload(applicationContext)
-
-        val buttonMidtrans = findViewById<Button>(R.id.buttonMidtrans)
-        val buttonRazorpay = findViewById<Button>(R.id.buttonRazorpay)
 
         //                          Midtrans Payment
 
@@ -68,36 +63,33 @@ class MainActivity : AppCompatActivity(), PaymentResultListener {
 
         // THIS IS MIDTRANS PAYMENT
         // Watch out, if u have different data type, it will return error
-        buttonMidtrans.setOnClickListener {
-            Toast.makeText(this, "Open transaction", Toast.LENGTH_LONG).show()
 
-            val transactionRequest = TransactionRequest(
-                "Payment-Midtrans" + System.currentTimeMillis().toString(),
-                totalProduct.toDouble()
-            )
-            val detail = com.midtrans.sdk.corekit.models.ItemDetails(
-                "NamaItemId",
-                totalProduct.toDouble(),
-                quantityProduct,
-                "Kursus Kotlin (Nama)"
-            )
-            val itemDetails = ArrayList<com.midtrans.sdk.corekit.models.ItemDetails>()
+        Toast.makeText(this, "Open transaction", Toast.LENGTH_LONG).show()
 
-            itemDetails.add(detail)
-            uiKitDetails(transactionRequest)
-            transactionRequest.itemDetails = itemDetails
-            MidtransSDK.getInstance().transactionRequest = transactionRequest
-            MidtransSDK.getInstance().startPaymentUiFlow(this)
+        val transactionRequest = TransactionRequest(
+            "Payment-Midtrans" + System.currentTimeMillis().toString(),
+            totalProduct.toDouble()
+        )
+        val detail = com.midtrans.sdk.corekit.models.ItemDetails(
+            "NamaItemId",
+            totalProduct.toDouble(),
+            quantityProduct,
+            "Kursus Kotlin (Nama)"
+        )
+        val itemDetails = ArrayList<com.midtrans.sdk.corekit.models.ItemDetails>()
 
-            TransactionResult.STATUS_SUCCESS
-        }
+        itemDetails.add(detail)
+        uiKitDetails(transactionRequest)
+        transactionRequest.itemDetails = itemDetails
+        MidtransSDK.getInstance().transactionRequest = transactionRequest
+        MidtransSDK.getInstance().startPaymentUiFlow(this)
+
+        TransactionResult.STATUS_SUCCESS
 
 
-        //                          Razorpay Payment
-        buttonRazorpay.setOnClickListener {
-            startPayment()
-        }
     }
+    //                          Razorpay Payment
+
 
     // MIDTRANS DETAIL
     // Change this as u wish
@@ -121,51 +113,5 @@ class MainActivity : AppCompatActivity(), PaymentResultListener {
 
         customerDetails.billingAddress = billingAddress
         transactionRequest.customerDetails = customerDetails
-    }
-
-    // RAZORPAY PAYMENT
-    private fun startPayment() {
-        /*
-        *  You need to pass current activity in order to let Razorpay create CheckoutActivity
-        * */
-        val activity: Activity = this
-        val co = Checkout()
-
-        try {
-            val options = JSONObject()
-            options.put("name", "Razorpay Corp")
-            options.put("description", "Izzat")
-            //You can omit the image option to fetch the image from dashboard
-            options.put("image", "https://s3.amazonaws.com/rzp-mobile/images/rzp.png")
-            options.put("theme.color", "#3399cc");
-            options.put("currency", "INR");
-
-            //order_id will come from backend
-            //options.put("order_id", "order_DBJOWzybf0sJbb");
-            options.put("amount", "50000")//pass amount in currency subunits
-
-            val prefill = JSONObject()
-            prefill.put("email", "himanshudhimanhr@gmail.com")
-            prefill.put("contact", "7009029910")
-
-            options.put("prefill", prefill)
-            co.open(activity, options)
-        } catch (e: Exception) {
-            Toast.makeText(activity, "Error in payment: " + e.message, Toast.LENGTH_LONG).show()
-            e.printStackTrace()
-        }
-    }
-
-    override fun onPaymentSuccess(p0: String?) {
-        Toast.makeText(this, "Payment Success", Toast.LENGTH_LONG).show()
-    }
-
-    override fun onPaymentError(p0: Int, p1: String?) {
-        Toast.makeText(this, "Error in payment: " + p1.toString(), Toast.LENGTH_LONG).show()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        Checkout.clearUserData(this)
     }
 }
